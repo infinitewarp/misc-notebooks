@@ -39,6 +39,14 @@ optional arguments:
 
 ## Examples
 
+### Default behavior
+
+```bash
+./mandelbrot.py
+```
+
+[2000x2000 pixels output image](examples/sample_output_default_full.png)
+
 ### Custom offset position, scale, and image size
 
 ```bash
