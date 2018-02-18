@@ -3,6 +3,22 @@
 `mandelbrot.py` generates image plots of mandelbrot sets.
 
 
+## What is the Mandelbrot set?
+
+> The Mandelbrot set is the set of complex numbers
+> ![c](https://latex.codecogs.com/svg.latex?c)
+> for which the function
+> ![f_{c}(z)=z^{2}+c](https://latex.codecogs.com/svg.latex?f_{c}(z)=z^{2}+c)
+> does not diverge when iterated from
+> ![z=0](https://latex.codecogs.com/svg.latex?z=0)
+> i.e., for which the sequence
+> ![f_{c}(0)](https://latex.codecogs.com/svg.latex?f_{c}(0)),
+> ![f_{c}(f_{c}(0))](https://latex.codecogs.com/svg.latex?f_{c}\(f_{c}\(0\)\)),
+> etc., remains bounded in absolute value.
+
+Source: [Mandelbrot set (wikipedia)](https://en.wikipedia.org/wiki/Mandelbrot_set)
+
+
 ## Usage
 
 ```
