@@ -17,7 +17,7 @@ def iterate(c_real, c_imag, max_iters):
     z = 0.0j
     for count in range(max_iters):
         z = z**2 + c
-        if abs(z)**2 >= 4:
+        if abs(z) > 2.0:
             return count
     return max_iters
 
