@@ -1,0 +1,5 @@
+numpy
+pillow
+numba
+matplotlib
+git+https://github.com/infinitewarp/infinitewarp-python-utils#egg=infinitewarp-utils
