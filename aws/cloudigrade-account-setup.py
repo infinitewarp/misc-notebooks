@@ -45,7 +45,7 @@ def configure_user_group(groupname, iam_client=None):
         print(f'warning: detached policy "{policy["PolicyName"]}" from group "{groupname}"')
 
 
-def create_users(new_usernames, groupname, iam_client=None, iam_resource=None):
+def create_users(new_usernames, groupname, keys, iam_client=None, iam_resource=None):
     """Create users, assign to the group, and reset their credentials."""
     if iam_client is None:
         iam_client = boto3.client('iam')
@@ -91,8 +91,14 @@ def create_users(new_usernames, groupname, iam_client=None, iam_resource=None):
             print(f'warning: deleted old access key for "{username}"')
 
         # generate a new access key
-        access_key = iam_client.create_access_key(UserName=username).get('AccessKey',{})
-        secrets.append((username, new_password, access_key['AccessKeyId'], access_key['SecretAccessKey']))
+        if keys:
+            access_key = iam_client.create_access_key(UserName=username).get('AccessKey',{})
+            secrets.append((username, new_password, access_key['AccessKeyId'], access_key['SecretAccessKey']))
+            print(f'new access key generated for "{username}"')
+        else:
+            secrets.append((username, new_password, None, None))
+            print(f'new access key NOT generated for "{username}"')
+
         print(f'user "{username}" credentials have been reset')
 
     return secrets
@@ -131,7 +137,7 @@ def configure_account_password_policy(iam_resource=None):
         print(f'account password policy {attr} is {getattr(account_password_policy, attr)}')
 
 
-def dump_new_logins(alias, secrets):
+def dump_new_logins(alias, secrets, keys):
     """Dump the created users and credentials to CSV files for distribution."""
     login_url = f'https://{alias}.signin.aws.amazon.com/console'
     for username, password, access_key, secret_access_key in secrets:
@@ -140,9 +146,12 @@ def dump_new_logins(alias, secrets):
             'Console login link': login_url,
             'User name': username,
             'Password': password,
-            'Access key id': access_key,
-            'Secret access key': secret_access_key,
         }
+        if keys:
+            data.update({
+                'Access key id': access_key,
+                'Secret access key': secret_access_key,
+            })
         with open(filepath, 'w', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=data.keys(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
@@ -227,8 +236,9 @@ def create_policy_for_running_cluster(iam_client=None):
 @click.option('--customer', help='enable policy for acting as a customer', is_flag=True)
 @click.option('--cluster', help='enable policy for running the cluster', is_flag=True)
 @click.option('--groupname', default='cloudigrade-engineer', help='desired group name')
+@click.option('--keys/--no-keys', default=False)
 @click.argument('new_usernames', nargs=-1, type=click.UNPROCESSED)
-def configure(alias, customer, cluster, groupname, new_usernames):
+def configure(alias, customer, cluster, groupname, keys, new_usernames):
     new_usernames = set(new_usernames)
     iam_client = boto3.client('iam')
     iam_resource = boto3.resource('iam')
@@ -249,8 +259,8 @@ def configure(alias, customer, cluster, groupname, new_usernames):
 
     if new_usernames:
         actual_alias = iam_client.list_account_aliases().get('AccountAliases', [])[0]
-        secrets = create_users(new_usernames, groupname, iam_client=iam_client, iam_resource=iam_resource)
-        dump_new_logins(actual_alias, secrets)
+        secrets = create_users(new_usernames, groupname, keys, iam_client=iam_client, iam_resource=iam_resource)
+        dump_new_logins(actual_alias, secrets, keys)
 
 
 if __name__ == '__main__':
