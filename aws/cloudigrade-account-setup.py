@@ -199,19 +199,30 @@ def create_policy_for_acting_as_customer(iam_client=None):
                     "Resource": "*"
                 },
                 {
-                    # Allow to see but not change the roles and policies.
+                    # Allow to manipulate roles and policies as a customer would.
                     "Effect": "Allow",
                     "Action": [
+                        "iam:ListPolicies",
                         "iam:GetRole",
+                        "iam:UpdateAssumeRolePolicy",
                         "iam:GetPolicyVersion",
                         "iam:GetPolicy",
-                        "iam:ListPolicies",
+                        "iam:ListEntitiesForPolicy",
+                        "iam:UpdateRoleDescription",
+                        "iam:DeletePolicy",
+                        "iam:ListRoles",
+                        "iam:DeleteRole",
+                        "iam:CreateRole",
+                        "iam:AttachRolePolicy",
+                        "iam:CreatePolicy",
+                        "iam:DetachRolePolicy",
                         "iam:ListPolicyVersions",
                         "iam:ListAttachedRolePolicies",
-                        "iam:ListEntitiesForPolicy",
-                        "iam:ListRoles",
+                        "iam:CreatePolicyVersion",
                         "iam:ListRolePolicies",
-                        "iam:GetRolePolicy"
+                        "iam:GetRolePolicy",
+                        "iam:DeletePolicyVersion",
+                        "iam:SetDefaultPolicyVersion"
                     ],
                     "Resource": [
                         "arn:aws:iam::*:policy/*",
@@ -225,7 +236,8 @@ def create_policy_for_acting_as_customer(iam_client=None):
                         'iam:*LoginProfile',
                         'iam:*AccessKey*',
                         'iam:ChangePassword',
-                        'iam:*SSHPublicKey*'
+                        'iam:*SSHPublicKey*',
+                        'iam:GetUser'
                     ],
                     'Resource': f'arn:aws:iam::{accountid}:user/${{aws:username}}'
                 },
@@ -279,7 +291,8 @@ def create_policy_for_running_cluster(iam_client=None):
                         'iam:*LoginProfile',
                         'iam:*AccessKey*',
                         'iam:ChangePassword',
-                        'iam:*SSHPublicKey*'
+                        'iam:*SSHPublicKey*',
+                        'iam:GetUser'
                     ],
                     'Resource': f'arn:aws:iam::{accountid}:user/${{aws:username}}'
                 },
