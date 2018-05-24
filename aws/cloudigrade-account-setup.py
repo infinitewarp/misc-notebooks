@@ -176,6 +176,7 @@ def create_policy_for_acting_as_customer(iam_client=None):
         iam_client = boto3.client('iam')
     policy_name = 'cloudigrade-engineer-as-customer'
     delete_policy_if_exists(policy_name, iam_client=iam_client)
+    accountid = get_accountid(iam_client)
     policy = iam_client.create_policy(
         PolicyName=policy_name,
         Description='For cloudigrade engineers to simulate customer activity.',
@@ -183,14 +184,56 @@ def create_policy_for_acting_as_customer(iam_client=None):
             "Version": "2012-10-17",
             "Statement": [
                 {
-                    "Sid": "VisualEditor0",
+                    # Allow for running instances as a customer.
                     "Effect": "Allow",
                     "Action": [
-                        "iam:*",
                         "cloudtrail:*",
+                        "iam:ListPoliciesGrantingServiceAccess",
                         "ec2:*"
                     ],
                     "Resource": "*"
+                },
+                {
+                    # Allow to see but not change the roles and policies.
+                    "Effect": "Allow",
+                    "Action": [
+                        "iam:GetRole",
+                        "iam:GetPolicyVersion",
+                        "iam:GetPolicy",
+                        "iam:ListPolicies",
+                        "iam:ListPolicyVersions",
+                        "iam:ListAttachedRolePolicies",
+                        "iam:ListEntitiesForPolicy",
+                        "iam:ListRoles",
+                        "iam:ListRolePolicies",
+                        "iam:GetRolePolicy"
+                    ],
+                    "Resource": [
+                        "arn:aws:iam::*:policy/*",
+                        "arn:aws:iam::*:role/*"
+                    ]
+                },
+                {
+                    # Allow IAM users to set their own creds/keys.
+                    'Effect': 'Allow',
+                    'Action': [
+                        'iam:*LoginProfile',
+                        'iam:*AccessKey*',
+                        'iam:ChangePassword',
+                        'iam:*SSHPublicKey*'
+                    ],
+                    'Resource': f'arn:aws:iam::{accountid}:user/${{aws:username}}'
+                },
+                {
+                    # Allow IAM users to list basic IAM data.
+                    'Effect': 'Allow',
+                    'Action': [
+                        'iam:ListAccount*',
+                        'iam:GetAccountSummary',
+                        'iam:GetAccountPasswordPolicy',
+                        'iam:ListUsers'
+                    ],
+                    'Resource': '*'
                 }
             ]
         })
@@ -205,23 +248,46 @@ def create_policy_for_running_cluster(iam_client=None):
         iam_client = boto3.client('iam')
     policy_name = 'cloudigrade-engineer-as-cluster'
     delete_policy_if_exists(policy_name, iam_client=iam_client)
+    accountid = get_accountid(iam_client)
     policy = iam_client.create_policy(
         PolicyName=policy_name,
         Description='For cloudigrade engineers to run the houndigrade cluster.',
         PolicyDocument=json.dumps({
-            "Version": "2012-10-17",
-            "Statement": [
+            'Version': '2012-10-17',
+            'Statement': [
                 {
-                    "Sid": "VisualEditor0",
-                    "Effect": "Allow",
-                    "Action": [
-                        "sns:*",
-                        "s3:*",
-                        "sts:*",
-                        "ec2:*",
-                        "sqs:*"
+                    # Allow using *all* of these resources for houndigrade cluster.
+                    'Effect': 'Allow',
+                    'Action': [
+                        'sns:*',
+                        's3:*',
+                        'sts:*',
+                        'ec2:*',
+                        'sqs:*'
                     ],
-                    "Resource": "*"
+                    'Resource': '*'
+                },
+                {
+                    # Allow IAM users to set their own creds/keys.
+                    'Effect': 'Allow',
+                    'Action': [
+                        'iam:*LoginProfile',
+                        'iam:*AccessKey*',
+                        'iam:ChangePassword',
+                        'iam:*SSHPublicKey*'
+                    ],
+                    'Resource': f'arn:aws:iam::{accountid}:user/${{aws:username}}'
+                },
+                {
+                    # Allow IAM users to list basic IAM data.
+                    'Effect': 'Allow',
+                    'Action': [
+                        'iam:ListAccount*',
+                        'iam:GetAccountSummary',
+                        'iam:GetAccountPasswordPolicy',
+                        'iam:ListUsers'
+                    ],
+                    'Resource': '*'
                 }
             ]
         })
@@ -230,6 +296,8 @@ def create_policy_for_running_cluster(iam_client=None):
     return policy
 
 
+def get_accountid(iam_client):
+    return iam_client.get_user()['User']['Arn'].split(':')[4]
 
 
 @click.command()
