@@ -172,6 +172,18 @@ def delete_policy_if_exists(policy_name, iam_client=None):
             versions = iam_client.list_policy_versions(PolicyArn=policy['Arn'])['Versions']
             for version in (v for v in versions if not v['IsDefaultVersion']):
                 iam_client.delete_policy_version(PolicyArn=policy['Arn'], VersionId=version['VersionId'])
+
+            attached_entities = iam_client.list_entities_for_policy(PolicyArn=policy['Arn'])
+            for group in attached_entities['PolicyGroups']:
+                iam_client.detach_group_policy(GroupName=group['GroupName'], PolicyArn=policy['Arn'])
+                print(f'warning: detached policy "{policy_name}" from group "{group["GroupName"]}"')
+            for user in attached_entities['PolicyUsers']:
+                iam_client.detach_user_policy(UserName=user['UserName'], PolicyArn=policy['Arn'])
+                print(f'warning: detached policy "{policy_name}" from user "{user["UserName"]}"')
+            for role in attached_entities['PolicyRoles']:
+                iam_client.detach_role_policy(RoleName=role['RoleName'], PolicyArn=policy['Arn'])
+                print(f'warning: detached policy "{policy_name}" from role "{role["RoleName"]}"')
+
             iam_client.delete_policy(PolicyArn=policy['Arn'])
             print(f'warning: deleted existing policy "{policy_name}"')
 
