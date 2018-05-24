@@ -168,6 +168,9 @@ def delete_policy_if_exists(policy_name, iam_client=None):
     policies = iam_client.list_policies(Scope='Local').get('Policies', [])
     for policy in policies:
         if policy['PolicyName'] == policy_name:
+            versions = iam_client.list_policy_versions(PolicyArn=policy['Arn'])['Versions']
+            for version in (v for v in versions if not v['IsDefaultVersion']):
+                iam_client.delete_policy_version(PolicyArn=policy['Arn'], VersionId=version['VersionId'])
             iam_client.delete_policy(PolicyArn=policy['Arn'])
             print(f'warning: deleted existing policy "{policy_name}"')
 
