@@ -137,12 +137,14 @@ def configure_account_password_policy(iam_resource=None):
         print(f'account password policy {attr} is {getattr(account_password_policy, attr)}')
 
 
-def dump_new_logins(alias, secrets, keys):
+def dump_new_logins(accountid, alias, secrets, keys):
     """Dump the created users and credentials to CSV files for distribution."""
     login_url = f'https://{alias}.signin.aws.amazon.com/console'
     for username, password, access_key, secret_access_key in secrets:
         filepath = f'{alias}-{username}-credentials.csv'
         data = {
+            'Account ID': accountid,
+            'Account Alias': alias,
             'Console login link': login_url,
             'User name': username,
             'Password': password,
@@ -329,7 +331,8 @@ def configure(alias, customer, cluster, groupname, keys, new_usernames):
     if new_usernames:
         actual_alias = iam_client.list_account_aliases().get('AccountAliases', [])[0]
         secrets = create_users(new_usernames, groupname, keys, iam_client=iam_client, iam_resource=iam_resource)
-        dump_new_logins(actual_alias, secrets, keys)
+        accountid = get_accountid(iam_client)
+        dump_new_logins(accountid, actual_alias, secrets, keys)
 
 
 if __name__ == '__main__':
