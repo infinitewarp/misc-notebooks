@@ -217,6 +217,7 @@ def create_policy_for_running_cluster(iam_client=None):
                     "Action": [
                         "sns:*",
                         "s3:*",
+                        "sts:*",
                         "ec2:*",
                         "sqs:*"
                     ],
