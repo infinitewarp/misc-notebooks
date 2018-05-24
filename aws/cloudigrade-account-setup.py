@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Utility script for setting up a new AWS account for developer use.
 
