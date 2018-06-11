@@ -18,6 +18,11 @@ from functools import lru_cache
 import cv2
 import numpy as np
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 # Precalculate these for calculate_third_equilateral_point to stay DRY.
 PI3 = math.pi / 3.0  # one angle of an equilateral triangle is pi/3
