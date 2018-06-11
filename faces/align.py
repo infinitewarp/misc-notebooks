@@ -179,10 +179,18 @@ def main(in_dir_path, out_dir_path):
         all_transforms2.append(second_transform)
 
     average_image = np.zeros((output_height, output_width, 3), np.float32)
+
+    # build a single final transformation from the original input points to the average out
+    all_transforms3 = []
+    destination_triangle = [averaged_points[0], averaged_points[3], averaged_points[4]]
+    for image_points in all_images_points:
+        source_triangle = [image_points[0], image_points[3], image_points[4]]
+        third_transform = cv2.getAffineTransform(np.float32(source_triangle), np.float32(destination_triangle))
+        all_transforms3.append(third_transform)
+
     image_count = len(all_images)
-    for image, transform, transform2, n in zip(all_images, all_transforms, all_transforms2, range(image_count)):
-        new_image = cv2.warpAffine(image, transform, (output_width*2, output_height*2))
-        new_image = cv2.warpAffine(new_image, transform2, (output_width, output_height))
+    for image, transform3, n in zip(all_images, all_transforms3, range(image_count)):
+        new_image = cv2.warpAffine(image, transform3, (output_width, output_height))
         cv2.imshow('image', new_image)
         cv2.waitKey(0)
 
